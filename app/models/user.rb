@@ -6,4 +6,7 @@ class User < ApplicationRecord
   validates :password,
             length: { minimum: 6 },
             if: -> { new_record? || !password.nil? }
+
+  has_many :folders, dependent: :destroy
+  has_many :archives, dependent: :destroy
 end

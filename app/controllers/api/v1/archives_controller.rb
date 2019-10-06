@@ -6,9 +6,10 @@ class Api::V1::ArchivesController < ApplicationController
   end
   
   def create
-    resouce_params = archive_params
-    resouce_params[:user] = current_user
-    @archive = Archive.new(resouce_params)
+    resource_params = archive_params
+    resource_params[:user] = current_user
+    resource_params[:folder_id] = nil if resource_params[:folder_id] == 'null'
+    @archive = Archive.new(resource_params)
     if @archive.save
       render json: { archives: Archive.where(user: current_user).map { |a| encode_archive(a) } }, status: 200
     else
@@ -29,10 +30,18 @@ class Api::V1::ArchivesController < ApplicationController
     Archive.find(params[:id]).destroy
   end
 
+  def archives_by_folder
+    if params[:id] != 'null'
+      render json: { archives: Archive.where(user: current_user, folder: params[:id]).map { |a| encode_archive(a) } }, status: 200
+    else
+      render json: { archives: Archive.where(user: current_user, folder: nil).map { |a| encode_archive(a) } }, status: 200
+    end
+  end
+
   private
  
   def archive_params
-    params.permit(:id, :title, :archive, :remove_archive)
+    params.permit(:id, :title, :archive, :folder_id, :remove_archive)
   end
 
   def encode_archive(archive)
